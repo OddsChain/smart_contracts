@@ -1,0 +1,10 @@
+dependencies:
+  - axelarnetwork/axelar-gmp-sdk-solidity@3.3.0
+  - smartcontractkit/chainlink@2.2.0
+  - OpenZeppelin/openzeppelin-contracts@4.9.2
+compiler:
+  solc:
+    remappings:
+      - "@axelar=axelarnetwork/axelar-gmp-sdk-solidity@3.3.0"
+      - "@chainlink=smartcontractkit/chainlink@2.2.0"
+      - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.9.2"
