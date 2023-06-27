@@ -72,4 +72,4 @@ def main():
 
 # currennt odds token address = 0xEF53020fEb7b71E4B700531894991Cc7Ca553fb4
 # current odds vrf helper address = 0x9F6e36A08315c6890FE402799176cd7748FcB695
-# current odds core address = 0xF142710c99dEB5a8b829Cea2dcE9e74dECA0ff8f
+# current odds core address = 0xe6B02DAde1E307FFE66a0664a7Ead2c8236eF5c7

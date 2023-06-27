@@ -16,7 +16,7 @@ contract Odds is AxelarExecutable {
     uint256 public estimatedCrossChainGasAmount;
 
     uint256 public constant VALIDATOR_STAKE_AMOUNT = 1000 * 10 ** 18;
-    uint256 public constant CLAIM_WINNING_WAIT_TIME = 300; // 300 seconds - 5 minutes
+    uint256 public constant CLAIM_WINNING_WAIT_TIME = 600; // 600 seconds - 10 minutes
     uint256 public constant VALIDATOR_VOTE_TIME = 600; // 600 seconds - 10 minutes
 
     string public destinationChain = "Fantom";
@@ -96,7 +96,7 @@ contract Odds is AxelarExecutable {
 
     mapping(address => mapping(uint256 => bool)) public _userParticipation;
 
-    mapping(address => mapping(uint256 => uint256)) public _userBetChoice;
+    mapping(address => mapping(uint256 => uint256)) public _userBetChoice; // 1 -yes // 2 -no
 
     mapping(address => mapping(uint256 => bool)) public _singleBetClaimed;
 
@@ -129,6 +129,7 @@ contract Odds is AxelarExecutable {
         uint256 betID,
         uint256 amount,
         address user,
+        address[] participants,
         uint256 yesPool,
         uint256 noPool,
         uint256 totalPool,
@@ -142,11 +143,22 @@ contract Odds is AxelarExecutable {
 
     event Validator_Joined(address validator, uint256 validatorId);
 
-    event Bet_Accepted(uint256 betID, bool choice, address validator);
+    event Bet_Accepted(
+        uint256 betID,
+        bool choice,
+        address validator,
+        uint256 betEndTime
+    );
 
     event Bet_Denied(uint256 betID, bool choice, address validator);
 
-    event Bet_Validated(uint256 betID, uint256 outcome, address validator);
+    event Bet_Validated(
+        uint256 betID,
+        uint256 outcome,
+        address validator,
+        uint256 claimWaitTime,
+        uint256 validationCount
+    );
 
     event Bet_Refunded(uint256 betID, address user, uint256 refundAmount);
 
@@ -158,7 +170,22 @@ contract Odds is AxelarExecutable {
         uint256 voteTime
     );
 
-    event Validator_Assigned(uint256 betID, bool betType, uint256 randomNumber);
+    event Validator_Assigned(
+        uint256 betID,
+        bool betType,
+        uint256 randomNumber,
+        address validator
+    );
+
+    event supportValidator(
+        bool choice,
+        uint256 betID,
+        address voter,
+        uint256 support,
+        uint256 oppose
+    );
+
+    event ValidatorReportDecided(uint256 reportOutcome, uint256 betID);
 
     // CONSTRUCTOR
     constructor(
@@ -199,9 +226,6 @@ contract Odds is AxelarExecutable {
                 estimatedCrossChainGasAmount
             );
 
-            // accepted
-            _singleBetDetails[singleBetIDCounter].accepted = true;
-
             _singleBetDetails[singleBetIDCounter].toBeSetTime =
                 _createSingleBetParams.betEndTime +
                 block.timestamp;
@@ -223,6 +247,9 @@ contract Odds is AxelarExecutable {
                 _createSingleBetParams.betEndTime +
                 block.timestamp;
 
+            // accepted
+            _singleBetDetails[singleBetIDCounter].accepted = true;
+
             emit SingleBet_Created(
                 singleBetIDCounter,
                 _createSingleBetParams.description,
@@ -237,7 +264,7 @@ contract Odds is AxelarExecutable {
     function joinSingleBet(
         uint256 _betID,
         uint256 _amount,
-        uint256 _choice // 1 - yes || 2 - no
+        bool _choice // true - yes || false - no
     ) public {
         uint256 betEndTime = _singleBetDetails[_betID].betEndTime;
         bool accepted = _singleBetDetails[_betID].accepted;
@@ -259,12 +286,11 @@ contract Odds is AxelarExecutable {
         _singleBetDetails[_betID].betStatistics.totalPool += _amount;
         _singleBetDetails[_betID].participants.push(msg.sender);
 
-        if (_choice == 1) {
+        if (_choice) {
             _singleBetDetails[_betID].betStatistics.yesPool += _amount;
             _singleBetDetails[_betID].betStatistics.yesPartcipants += 1;
             _userBetChoice[msg.sender][_betID] = 1;
-        }
-        if (_choice == 2) {
+        } else {
             _singleBetDetails[_betID].betStatistics.noPool += _amount;
             _singleBetDetails[_betID].betStatistics.noParticipants += 1;
             _userBetChoice[msg.sender][_betID] = 2;
@@ -274,6 +300,7 @@ contract Odds is AxelarExecutable {
             _betID,
             _amount,
             msg.sender,
+            _singleBetDetails[_betID].participants,
             _singleBetDetails[_betID].betStatistics.yesPool,
             _singleBetDetails[_betID].betStatistics.noPool,
             _singleBetDetails[_betID].betStatistics.totalPool,
@@ -397,7 +424,12 @@ contract Odds is AxelarExecutable {
         if (_choice) {
             _singleBetDetails[_betID].accepted = true;
             _validators[msg.sender].betsAccepted += 1;
-            emit Bet_Accepted(_betID, _choice, msg.sender);
+            emit Bet_Accepted(
+                _betID,
+                _choice,
+                msg.sender,
+                _singleBetDetails[_betID].toBeSetTime + block.timestamp
+            );
         } else {
             _singleBetDetails[_betID].accepted = false;
             _validators[msg.sender].betsRejected += 1;
@@ -406,7 +438,6 @@ contract Odds is AxelarExecutable {
     }
 
     function validateBet(uint256 _betID, uint256 _outcome) public {
-        require(_singleBetDetails[_betID].betType, "#04");
         require(_singleBetDetails[_betID].accepted, "#02");
         require(_singleBetDetails[_betID].outcome == 0, "#19");
 
@@ -436,6 +467,14 @@ contract Odds is AxelarExecutable {
         if (_singleBetDetails[_betID].betType) {
             _singleBetDetails[_betID].outcome = _outcome;
             _validators[msg.sender].betsValidated += 1;
+
+            emit Bet_Validated(
+                _betID,
+                _outcome,
+                msg.sender,
+                block.timestamp + CLAIM_WINNING_WAIT_TIME,
+                _singleBetDetails[_betID].validationCount
+            );
         } else {
             if (_outcome == 1) {
                 _singleBetDetails[_betID].betStatistics.yesOutcomeCount += 1;
@@ -455,6 +494,16 @@ contract Odds is AxelarExecutable {
                     _singleBetDetails[_betID].outcome = 2;
                 }
             }
+
+            emit Bet_Validated(
+                _betID,
+                _singleBetDetails[_betID].validationCount == 3
+                    ? _singleBetDetails[_betID].outcome
+                    : 0,
+                msg.sender,
+                block.timestamp + CLAIM_WINNING_WAIT_TIME,
+                _singleBetDetails[_betID].validationCount
+            );
         }
 
         uint256 validatorReward;
@@ -474,8 +523,6 @@ contract Odds is AxelarExecutable {
         _singleBetDetails[_betID].claimWaitTime =
             block.timestamp +
             CLAIM_WINNING_WAIT_TIME;
-
-        emit Bet_Validated(_betID, _outcome, msg.sender);
     }
 
     function reportValidator(
@@ -528,17 +575,34 @@ contract Odds is AxelarExecutable {
         _hasVoted[msg.sender][_betID] = true;
         uint256 requiredValidators = ((validators.length * 50) / 100);
 
+        // true for support
+        // false for against
         if (_choice) {
             _singleBetDetails[_betID].betReport.support += 1;
             uint256 support = _singleBetDetails[_betID].betReport.support;
+            emit supportValidator(
+                _choice,
+                _betID,
+                msg.sender,
+                _singleBetDetails[_betID].betReport.support,
+                _singleBetDetails[_betID].betReport.oppose
+            );
             //
             if (support > requiredValidators) {
                 _singleBetDetails[_betID].betReport.reportOutcome = 1;
                 _singleBetDetails[_betID].betReport.currentlyChallenged = false;
+                emit ValidatorReportDecided(1, _betID);
             }
         } else {
             _singleBetDetails[_betID].betReport.oppose += 1;
             uint256 oppose = _singleBetDetails[_betID].betReport.oppose;
+            emit supportValidator(
+                _choice,
+                _betID,
+                msg.sender,
+                _singleBetDetails[_betID].betReport.support,
+                _singleBetDetails[_betID].betReport.oppose
+            );
             //
             if (oppose > requiredValidators) {
                 _singleBetDetails[_betID].betReport.reportOutcome = 2;
@@ -560,6 +624,8 @@ contract Odds is AxelarExecutable {
                 _canValidate[
                     _singleBetDetails[_betID].betReport.maliciousValidator
                 ] = false;
+
+                emit ValidatorReportDecided(2, _betID);
             }
         }
     }
@@ -653,10 +719,19 @@ contract Odds is AxelarExecutable {
         // assign validator to bet
         _singleBetDetails[betID].validators = [validValidators[randomNumber]];
 
-        emit Validator_Assigned(betID, betType, randomNumber);
+        emit Validator_Assigned(
+            betID,
+            betType,
+            randomNumber,
+            validValidators[randomNumber]
+        );
     }
 
     // GETTER FUNCTIONS
+
+    function getRequiredNumberOfValidators() public view returns (uint256) {
+        return validatorCount;
+    }
 
     function getUserStakeAmount(
         address _user,
@@ -673,7 +748,7 @@ contract Odds is AxelarExecutable {
 
         require(winner, "#33");
         uint256 outCome = _singleBetDetails[_betID].outcome;
-        uint256 amount = _userBetAmount[msg.sender][_betID];
+        uint256 amount = _userBetAmount[_user][_betID];
 
         uint256 supportPoolBalance;
         uint256 opposingPoolBalance;
@@ -779,8 +854,8 @@ contract Odds is AxelarExecutable {
         return block.timestamp;
     }
 
-    function getUserDetails() public view returns (User memory) {
-        return _userDetails[msg.sender];
+    function getUserDetails(address _user) public view returns (User memory) {
+        return _userDetails[_user];
     }
 
     // TEST FUNCTIONS
@@ -789,6 +864,10 @@ contract Odds is AxelarExecutable {
         require(msg.sender == deployer, "! deployer");
         (bool success, ) = msg.sender.call{value: contractBalance}("");
         require(success, "! successful");
+    }
+
+    function hasVoted(uint256 _betID) public view returns (bool) {
+        return _hasVoted[msg.sender][_betID];
     }
 
     receive() external payable {}

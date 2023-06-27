@@ -1,0 +1,16 @@
+contracts_folder: contracts
+dependencies:
+- github: axelarnetwork/axelar-gmp-sdk-solidity
+  name: axelarnetwork
+  version: 3.3.0
+- github: smartcontractkit/chainlink
+  name: smartcontractkit
+  version: 2.2.0
+- github: OpenZeppelin/openzeppelin-contracts
+  name: OpenZeppelin
+  version: 4.9.2
+solidity:
+  import_remapping:
+  - '@axelar/contracts=axelarnetwork/3.3.0'
+  - '@chainlink/contracts=smartcontractkit/2.2.0'
+  - '@openzeppelin/contracts=OpenZeppelin/4.9.2'

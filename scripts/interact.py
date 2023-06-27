@@ -1,4 +1,4 @@
-from brownie import Odds, OddsVRFHelper, accounts
+from brownie import Odds, OddsVRFHelper, OddsToken, accounts
 
 
 def update_odds_destination_address():
@@ -16,7 +16,7 @@ def update_odds_vrf_helper_destination_address():
 
     odds_vrf_helper = OddsVRFHelper[-1]
 
-    destination_address = "0xF142710c99dEB5a8b829Cea2dcE9e74dECA0ff8f".encode("utf-8")
+    destination_address = "0xe6B02DAde1E307FFE66a0664a7Ead2c8236eF5c7".encode("utf-8")
     tx = odds_vrf_helper.updateDestinationAddress(destination_address, {"from": acct})
     tx.wait(1)
 
@@ -26,8 +26,20 @@ def get_current_timestamp():
     print(current_t)
 
 
+def get_recernt_odds():
+    print(Odds[-1].address)
+
+
+def mint_odds_token():
+    acct = accounts.load("test-1")
+    amount = 1000 * 10**18
+    user = "0x5F7FbE4bf8987FA77Ec6C22FD3f3d558B3b68D4e"
+
+    OddsToken[-1].mintFree(user, amount, {"from": acct})
+
+
 def main():
-    get_current_timestamp()
+    mint_odds_token()
 
 
 # ENTITY TYPES FOR SUBGRAPH
