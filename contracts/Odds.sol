@@ -17,7 +17,6 @@ contract Odds is AxelarExecutable {
 
     uint256 public constant VALIDATOR_STAKE_AMOUNT = 1000 * 10 ** 18;
     uint256 public constant CLAIM_WINNING_WAIT_TIME = 600; // 600 seconds - 10 minutes
-    uint256 public constant VALIDATOR_VOTE_TIME = 600; // 600 seconds - 10 minutes
 
     string public destinationChain = "Fantom";
     string public destinationAddress;
@@ -55,7 +54,6 @@ contract Odds is AxelarExecutable {
         uint256 betId;
         string description;
         bool currentlyChallenged;
-        uint256 voteTime;
         uint256 support; // 1
         uint256 oppose; // 2
         uint256 reportOutcome; // 0 - Nothing ||| 1 - Validator Was Right ||| 2 - Validator Was Wrong: Refunds Granted, Validator Losses Stake And Validation Rights
@@ -166,8 +164,7 @@ contract Odds is AxelarExecutable {
         address reporter,
         address validator,
         string description,
-        uint256 betID,
-        uint256 voteTime
+        uint256 betID
     );
 
     event Validator_Assigned(
@@ -226,9 +223,8 @@ contract Odds is AxelarExecutable {
                 estimatedCrossChainGasAmount
             );
 
-            _singleBetDetails[singleBetIDCounter].toBeSetTime =
-                _createSingleBetParams.betEndTime +
-                block.timestamp;
+            _singleBetDetails[singleBetIDCounter]
+                .toBeSetTime = _createSingleBetParams.betEndTime;
 
             emit SingleBet_Created(
                 singleBetIDCounter,
@@ -538,10 +534,12 @@ contract Odds is AxelarExecutable {
             !_singleBetDetails[_betID].betReport.currentlyChallenged,
             "#22"
         );
+        require(_singleBetDetails[_betID].accepted, "#02");
         require(
             block.timestamp < _singleBetDetails[_betID].claimWaitTime,
             "#24"
         );
+        require(_singleBetDetails[_betID].validators[0] != address(0), "#37");
 
         _singleBetDetails[_betID].betReport.reporter = msg.sender;
         _singleBetDetails[_betID].betReport.maliciousValidator = validator;
@@ -549,17 +547,7 @@ contract Odds is AxelarExecutable {
         _singleBetDetails[_betID].betReport.currentlyChallenged = true;
         _singleBetDetails[_betID].betReport.description = _description;
 
-        _singleBetDetails[_betID].betReport.voteTime =
-            block.timestamp +
-            VALIDATOR_VOTE_TIME;
-
-        emit Validator_Reported(
-            msg.sender,
-            validator,
-            _description,
-            _betID,
-            block.timestamp + VALIDATOR_VOTE_TIME
-        );
+        emit Validator_Reported(msg.sender, validator, _description, _betID);
     }
 
     function voteValidator(uint256 _betID, bool _choice) public {
@@ -567,10 +555,6 @@ contract Odds is AxelarExecutable {
         require(_singleBetDetails[_betID].betReport.currentlyChallenged, "#25");
         require(!_hasVoted[msg.sender][_betID], "#26");
         require(_isValidator[msg.sender], "#16");
-        require(
-            block.timestamp < _singleBetDetails[_betID].betReport.voteTime,
-            "#26"
-        );
 
         _hasVoted[msg.sender][_betID] = true;
         uint256 requiredValidators = ((validators.length * 50) / 100);
@@ -856,6 +840,12 @@ contract Odds is AxelarExecutable {
 
     function getUserDetails(address _user) public view returns (User memory) {
         return _userDetails[_user];
+    }
+
+    function getValidators(
+        uint256 _betID
+    ) public view returns (address[] memory) {
+        return _singleBetDetails[_betID].validators;
     }
 
     // TEST FUNCTIONS

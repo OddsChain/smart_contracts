@@ -34,6 +34,7 @@
 #33 - Is not a winner
 #34 - Validator Decision Was Wrong == Refund
 #36 - Validator Has Already Validated Bet
+#37 - No Validator Assigned To Bet
 
 <!-- IMPORTANT -->
 

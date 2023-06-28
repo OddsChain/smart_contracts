@@ -37,7 +37,7 @@ def deploy_odds():
     gas_receiver = "0xbE406F0189A0B4cf3A05C286473D23791Dd44Cc6"
     odds_token_address = OddsToken[-1].address
     destination_address = ""
-    estimated_cross_chain_gas = Web3.toWei("0.37", "ether")
+    estimated_cross_chain_gas = Web3.toWei("0.31", "ether")
 
     odds = Odds.deploy(
         gateway,
@@ -49,27 +49,10 @@ def deploy_odds():
     )
 
 
-# DONT FORGET TO FUND THE TWO CONTRACTS WITH DEV AND FTM !!!!!
-
-
-def withdraw_fund_odds_vrf_helper():
-    acct = accounts.load("test-1")
-    OddsVRFHelper[-1].withdrawAllFunds({"from": acct})
-
-
-def withdraw_fund_odds():
-    acct = accounts.load("test-1")
-    Odds[-1].withdrawAllFunds({"from": acct})
-
-
 def main():
-    deploy_odds()
+    deploy_odds_vrf_helper()
 
 
-# moonbeam-test
-# fantom-testnet
-
-
-# currennt odds token address = 0xEF53020fEb7b71E4B700531894991Cc7Ca553fb4
-# current odds vrf helper address = 0x9F6e36A08315c6890FE402799176cd7748FcB695
-# current odds core address = 0xe6B02DAde1E307FFE66a0664a7Ead2c8236eF5c7
+# current odds token address = 0xEF53020fEb7b71E4B700531894991Cc7Ca553fb4
+# current odds vrf helper address = 0xf6F74F2aCd9F11ED7873Bc95f666A9b876b305ed
+# current odds core address = 0xf3e30B0891521D595247AEB48F72105A4434B09E

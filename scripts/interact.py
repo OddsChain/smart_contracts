@@ -6,7 +6,7 @@ def update_odds_destination_address():
 
     odds = Odds[-1]
 
-    destination_address = "0x9F6e36A08315c6890FE402799176cd7748FcB695".encode("utf-8")
+    destination_address = "0xf6F74F2aCd9F11ED7873Bc95f666A9b876b305ed".encode("utf-8")
     tx = odds.updateDestinationAddress(destination_address, {"from": acct})
     tx.wait(1)
 
@@ -16,7 +16,7 @@ def update_odds_vrf_helper_destination_address():
 
     odds_vrf_helper = OddsVRFHelper[-1]
 
-    destination_address = "0xe6B02DAde1E307FFE66a0664a7Ead2c8236eF5c7".encode("utf-8")
+    destination_address = "0xf3e30B0891521D595247AEB48F72105A4434B09E".encode("utf-8")
     tx = odds_vrf_helper.updateDestinationAddress(destination_address, {"from": acct})
     tx.wait(1)
 
@@ -32,47 +32,12 @@ def get_recernt_odds():
 
 def mint_odds_token():
     acct = accounts.load("test-1")
-    amount = 1000 * 10**18
+    amount = 100000 * 10**18
     user = "0x5F7FbE4bf8987FA77Ec6C22FD3f3d558B3b68D4e"
+    user_two = "0x52047DE4458AfaaFF7C6B954C63033A21EfCD2E6"
 
-    OddsToken[-1].mintFree(user, amount, {"from": acct})
+    OddsToken[-1].mintFree(user_two, amount, {"from": acct})
 
 
 def main():
-    mint_odds_token()
-
-
-# ENTITY TYPES FOR SUBGRAPH
-
-
-# 1. Bet Entity
-# - betID
-# - bet description
-# - bet type || false == private validation && true == public validation
-# - validators array
-# - participants array
-# - creator of bet
-# - end time for bet
-# - outcome of bet || 1 - yes won && 2 - no won
-# - accepted
-# - validation count for private bets
-# - claim wait time for validators to challenge
-# - to be set time for entry end time for public validator acceptance
-# - bet statistics
-#     - yesPool
-#     - noPool
-#     - totalPool
-#     - yesPartcipants
-#     - noParticipants
-#     - yesOutcomeCount
-#     - noOutcomeCount
-# - bet report
-#     - reporter
-#     - maliciousValidator
-#     - betId
-#     - description
-#     - currentlyChallenged
-#     - voteTime
-#     - support
-#     - oppose
-#     - reportOutcome
+    update_odds_vrf_helper_destination_address()

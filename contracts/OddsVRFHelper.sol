@@ -12,13 +12,14 @@ contract OddsVRFHelper is AxelarExecutable, VRFConsumerBaseV2 {
     string public destinationChain = "Moonbeam";
     string public destinationAddress;
 
-    bytes32 public keyHash;
+    bytes32 public keyHash =
+        0x121a143066e0f2f08b620784af77cccb35c6242460b4a8ee251b4b416abaebd4;
     uint64 public subscriptionId;
-    uint32 public callBackGasLimit;
-    uint32 public numWords;
-    uint16 public requestconfirmations;
+    uint32 public callBackGasLimit = 500000;
+    uint32 public numWords = 1;
+    uint16 public requestconfirmations = 3;
 
-    uint256 public estimatedCrossChainGasAmount;
+    uint256 public estimatedCrossChainGasAmount = 3 * 10 ** 17;
 
     address public deployer;
 
