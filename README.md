@@ -69,18 +69,20 @@ To assign a validator for public bets, we utilized Chainlink VRF. However, since
 
 Sections in the smart contract that implements this
 
-- OddsVRFHelper Contract -
-  To receive the cross-chain request, including the bet and validator details, we initiated the process of requesting a random number. Subsequently, we fulfilled the request for the random number and sent the resulting value back to the Odds core contract.
+- OddsVRFHelper Contract - https://github.com/OddsChain/smart_contracts/blob/master/contracts/OddsVRFHelper.sol
 
-- `_execute` and `getVRFForValidatorAssignment` functions -
-  To receive the selected validator and facilitate the assignment of validators, we established a connection to the OddsVRFHelper deployed on the Fantom testnet. This allowed us to make the necessary requests and handle the process of assigning validators within the system.
+  To receive the cross-chain request from the Odds contract and send back the fulfilled random number to it.
+
+- `_execute` and `getVRFForValidatorAssignment` functions - https://github.com/OddsChain/smart_contracts/blob/master/contracts/Odds.sol
+
+  Contains all the core logic for the application. Also makes a cross chain request request for a random number when a publicbet is created, via chainlink VRF to the OddsVRFHelper and receives it to assign a random validator to the public bet.
 
 # LINKS
 
-Live website - https://courageous-kheer-634a82.netlify.app/
-Youtube Video -
-Project Github - https://github.com/orgs/OddsChain/repositories
-Smart contract repo - https://github.com/OddsChain/smart_contracts
-Frontend Repo - https://github.com/OddsChain/frontend
-Subgraph Repo - https://github.com/OddsChain/subgraph
-Documentation - https://francis-4.gitbook.io/odds/
+- Live website - https://courageous-kheer-634a82.netlify.app/
+- Youtube Video -
+- Project Github - https://github.com/orgs/OddsChain/repositories
+- Smart contract repo - https://github.com/OddsChain/smart_contracts
+- Frontend Repo - https://github.com/OddsChain/frontend
+- Subgraph Repo - https://github.com/OddsChain/subgraph
+- Documentation - https://francis-4.gitbook.io/odds/
