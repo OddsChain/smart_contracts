@@ -62,6 +62,9 @@ The process for public bets involves several steps and considerations. Here is a
 
 # Chainlink Use Case
 
+For a full detailed explanation of teh chainlink usecase. Visit our documentation.
+Link - https://francis-4.gitbook.io/odds/use-cases/chainlink-use-case
+
 To assign a validator for public bets, we utilized Chainlink VRF. However, since Chainlink VRF is not supported on Moonbeam, we employed Axelar to facilitate a cross-chain request. This allowed us to obtain a random number, which was then used to assign a validator at random for the public bet.
 
 Sections in the smart contract that implements this
@@ -71,3 +74,13 @@ Sections in the smart contract that implements this
 
 - `_execute` and `getVRFForValidatorAssignment` functions -
   To receive the selected validator and facilitate the assignment of validators, we established a connection to the OddsVRFHelper deployed on the Fantom testnet. This allowed us to make the necessary requests and handle the process of assigning validators within the system.
+
+# LINKS
+
+Live website - https://courageous-kheer-634a82.netlify.app/
+Youtube Video -
+Project Github - https://github.com/orgs/OddsChain/repositories
+Smart contract repo - https://github.com/OddsChain/smart_contracts
+Frontend Repo - https://github.com/OddsChain/frontend
+Subgraph Repo - https://github.com/OddsChain/subgraph
+Documentation - https://francis-4.gitbook.io/odds/
